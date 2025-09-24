@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Uploader Pro - by Gxyenn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none !important; }
+        .view { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .card { background-color: rgba(31, 41, 55, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .loader { width: 50px; height: 50px; border: 4px solid #4f46e5; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .social-icon { transition: transform 0.2s; }
+        .social-icon:hover { transform: scale(1.2); }
+        .modal-enter { animation: fadeIn 0.3s ease-out forwards; }
+        .modal-leave { animation: fadeOut 0.3s ease-in forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        .file-to-extract-item.selected { background-color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 to-indigo-900 -z-10"></div>
+
+    <main id="login-view" class="view p-4 text-center">
+        <div class="card p-8 md:p-10 rounded-2xl shadow-2xl border border-gray-700">
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">GitHub Uploader Pro</h1>
+            <p class="text-gray-400 mb-6 max-w-md">Upload file apa saja, termasuk ZIP, langsung ke repositori GitHub Anda.</p>
+            <button id="login-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md text-base inline-flex items-center gap-2 transition-transform duration-200 hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Login dengan GitHub
+            </button>
+        </div>
+    </main>
+
+    <main id="dashboard-view" class="view hidden p-4 w-full">
+        <div class="w-full max-w-2xl mx-auto">
+            <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                <h1 class="text-3xl font-bold text-white">Dashboard Uploader</h1>
+                <div class="flex items-center gap-3">
+                    <span id="user-name" class="text-gray-300 font-medium text-sm"></span>
+                    <img id="user-avatar" class="w-9 h-9 rounded-full border-2 border-indigo-500" alt="Avatar">
+                    <button id="logout-btn" class="bg-gray-700 hover:bg-red-600 text-white font-semibold py-1 px-3 text-sm rounded-md transition">Logout</button>
+                </div>
+            </header>
+            <div id="file-drop-section" class="card rounded-2xl border border-gray-700 p-6">
+                <input type="file" id="file-input" class="hidden" multiple>
+                <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-lg p-10 text-center cursor-pointer hover:border-indigo-500 hover:bg-gray-800 transition">
+                    <p id="drop-zone-text" class="text-gray-300 text-lg">UPLOAD ALL FILES / ZIP</p>
+                    <p class="text-gray-400 text-sm mt-1">Seret & jatuhkan file di sini, atau klik untuk memilih</p>
+                </div>
+                <div id="file-list" class="mt-4 text-gray-300 text-sm"></div>
+                <button id="start-upload-btn" class="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-5 rounded-lg text-base transition disabled:bg-gray-600 disabled:cursor-not-allowed" disabled>
+                    Lanjutkan
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <div id="modal-container" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-10">
+        </div>
+    
+    <div id="uploading-view" class="hidden fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4 z-20">
+        <div class="card w-full max-w-sm rounded-xl border border-gray-700 p-6 shadow-2xl text-center">
+            <div class="loader mx-auto"></div>
+            <p id="upload-status-text" class="text-lg font-semibold text-white mt-5 mb-6">Mengupload file...</p>
+            <div class="border-t border-gray-700 pt-5">
+                <p class="text-xs text-gray-400">Hai! Nama saya Gxyenn, pengembang web ini.</p>
+                <p class="text-xs text-gray-400 mb-3">Tolong gunakan dengan baik ya!</p>
+                <div class="flex justify-center items-center gap-4">
+                    <a href="https://github.com/Gxyenn" target="_blank" class="social-icon text-gray-400 hover:text-white" title="GitHub"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></a>
+                    <a href="#" target="_blank" class="social-icon text-gray-400 hover:text-white" title="TikTok"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.65 4.28 1.7.03.18.08.36.08.54-.01 2.11-.85 4.23-2.22 5.81-1.37 1.58-3.32 2.43-5.38 2.44-2.06.01-4.01-.84-5.38-2.43-1.37-1.59-2.21-3.7-2.22-5.81 0-.18.04-.36.08-.54.2-.02.4-.03.6-.04 1.55-.08 3.09-.63 4.17-1.75 1.11-1.12 1.65-2.7 1.7-4.28.02-.02.03-.04.05-.05.02-.01.04-.01.06-.02z"/></svg></a>
+                    <a href="#" target="_blank" class="social-icon text-gray-400 hover:text-white" title="YouTube"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="hidden fixed bottom-5 right-5 card border border-gray-700 py-2 px-4 rounded-lg shadow-lg text-white text-sm">
+        <p id="toast-message"></p>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
